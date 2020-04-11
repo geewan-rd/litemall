@@ -1,0 +1,49 @@
+syntax = "proto3";
+package payment;
+
+option go_package = "github.com/geewan-rd/payment-service/proto";
+option java_package = "org.linlinjava.litemall.wx.service.payment";
+
+service Payment {
+  rpc CreateOrder(CreateOrderReq) returns (CreateOrderRsp) {}
+}
+
+enum Code {
+  OK = 0;                   // 请求成功
+  ParaError = 20002;        // 参数错误
+  InternalError = 60005;    // 内部错误
+  UnsupportPayType = 61001; // 不支持的支付方式
+  PayChannelError = 61002;  // 支付渠道错误
+  UnkonwnError = 69999;     // 未知错误
+}
+
+message UniRsp {
+  bool Success = 1; // 是否成功
+  Code Code = 2;    // 结果码
+  string Error = 3; // 错误
+}
+
+enum PayType { ExpressPay_WECHATPAY_JSAPI = 0; }
+
+enum CurrencyType {
+  Unknown = 0;
+  HKD = 2;
+}
+
+message CreateOrderReq {
+  PayType PayType = 1;
+  CurrencyType CurrencyType = 2;
+  int32 Amount = 3;
+  string Note = 4;
+  string MerchantOrderNo = 5;
+  string GoodsName = 6;
+  string GoodsNote = 7;
+  string ClientIP = 8;
+  string ReturnUrl = 9;
+  string NotifyUrl = 10;
+}
+
+message CreateOrderRsp {
+  UniRsp Rsp = 1;
+  string QrUrl = 2;
+}

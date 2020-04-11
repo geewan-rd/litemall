@@ -87,10 +87,10 @@ public class WxOrderController {
      * @param body   订单信息，{ orderId：xxx }
      * @return 支付订单ID
      */
-    @PostMapping("prepay")
-    public Object prepay(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
-        return wxOrderService.prepay(userId, body, request);
-    }
+    // @PostMapping("prepay")
+    // public Object prepay(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
+    //     return wxOrderService.prepay(userId, body, request);
+    // }
 
     /**
      * 微信H5支付
@@ -164,9 +164,7 @@ public class WxOrderController {
      * @return 待评价订单商品信息
      */
     @GetMapping("goods")
-    public Object goods(@LoginUser Integer userId,
-                        @NotNull Integer orderId,
-                        @NotNull Integer goodsId) {
+    public Object goods(@LoginUser Integer userId, @NotNull Integer orderId, @NotNull Integer goodsId) {
         return wxOrderService.goods(userId, orderId, goodsId);
     }
 
