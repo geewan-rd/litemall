@@ -6,6 +6,7 @@ option java_package = "org.linlinjava.litemall.wx.service.payment";
 
 service Payment {
   rpc CreateOrder(CreateOrderReq) returns (CreateOrderRsp) {}
+  rpc Notify(NotifyReq) returns (NotifyRsp) {}
 }
 
 enum Code {
@@ -46,4 +47,28 @@ message CreateOrderReq {
 message CreateOrderRsp {
   UniRsp Rsp = 1;
   string QrUrl = 2;
+}
+
+message NotifyReq { 
+  PayType PayType = 1;
+  string NotifyBody = 2; 
+}
+
+enum OrderState {
+  Success = 0;
+  Fail = 1;
+}
+
+message NotifyRsp {
+  UniRsp Rsp = 1;
+  string MerchantOrderNo = 2;
+  string OrderID = 3;
+  string TransactionID = 4;
+  OrderState OrderState = 5;
+  int32 Amount = 6;
+  CurrencyType CurrencyType = 7;
+  int32 ActualAmount = 8;
+  CurrencyType ActualCurrency = 9;
+  string TimeFinish = 10;
+  string RspBody = 11;
 }

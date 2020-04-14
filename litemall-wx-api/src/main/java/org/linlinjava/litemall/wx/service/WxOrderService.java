@@ -41,6 +41,8 @@ import org.linlinjava.litemall.wx.service.payment.PaymentGrpc.PaymentBlockingStu
 import org.linlinjava.litemall.wx.service.payment.PaymentGrpc.PaymentStub;
 import org.linlinjava.litemall.wx.service.payment.PaymentOuterClass.CreateOrderReq;
 import org.linlinjava.litemall.wx.service.payment.PaymentOuterClass.CurrencyType;
+import org.linlinjava.litemall.wx.service.payment.PaymentOuterClass.NotifyReq;
+import org.linlinjava.litemall.wx.service.payment.PaymentOuterClass.NotifyRsp;
 import org.linlinjava.litemall.wx.service.payment.PaymentOuterClass.PayType;
 import org.linlinjava.litemall.wx.task.OrderUnpaidTask;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -667,10 +669,12 @@ public class WxOrderService {
             reqBuilder.setCurrencyType(CurrencyType.HKD);
             reqBuilder.setAmount(fee);
             reqBuilder.setMerchantOrderNo(order.getOrderSn());
-            reqBuilder.setGoodsName("商城商品");
-            reqBuilder.setClientIP(request.getRemoteAddr().strip());
-            reqBuilder.setReturnUrl("");
-            reqBuilder.setNotifyUrl("");
+            reqBuilder.setGoodsName("穿梭会员");
+            reqBuilder.setClientIP(request.getRemoteAddr().toString());
+            reqBuilder.setReturnUrl("https://www.baidu.com");
+            reqBuilder.setNotifyUrl("http://47.108.67.230:8080/wx/order/pay-notify");
+            reqBuilder.setGoodsNote("goods");
+            reqBuilder.setNote("goods");
 
             result = paymentBlockingStub.createOrder(reqBuilder.build());
             
@@ -694,9 +698,9 @@ public class WxOrderService {
      */
     @Transactional
     public Object payNotify(HttpServletRequest request, HttpServletResponse response) {
-        String xmlResult = null;
+        String result = null;
         try {
-            xmlResult = IOUtils.toString(request.getInputStream(),
+            result = IOUtils.toString(request.getInputStream(),
             request.getCharacterEncoding());
         } catch (IOException e) {
             e.printStackTrace();
@@ -723,11 +727,18 @@ public class WxOrderService {
         // logger.info("处理腾讯支付平台的订单支付");
         // logger.info(result);
 
-        String orderSn = "";
-        String payId = "";
+        logger.info(result);
+        NotifyReq.Builder reqBuilder = NotifyReq.newBuilder();
+        reqBuilder.setPayType(PayType.ExpressPay_WECHATPAY_JSAPI);
+        reqBuilder.setNotifyBody(result);
+        NotifyRsp rsp;
+        rsp = paymentBlockingStub.notify(reqBuilder.build());
+
+        String orderSn = rsp.getMerchantOrderNo();
+        String payId = rsp.getOrderID();
 
         // // 分转化成元
-        String totalFee = BaseWxPayResult.fenToYuan(0);
+        int totalFee = rsp.getAmount();
         LitemallOrder order = orderService.findBySn(orderSn);
         if (order == null) {
         return WxPayNotifyResponse.fail("订单不存在 sn=" + orderSn);
@@ -739,7 +750,7 @@ public class WxOrderService {
         }
 
         // 检查支付订单金额
-        if (!totalFee.equals(order.getActualPrice().toString())) {
+        if (order.getActualPrice().intValue() != totalFee) {
         return WxPayNotifyResponse.fail(order.getOrderSn() + " : 支付金额不符合 totalFee=" +
         totalFee);
         }
