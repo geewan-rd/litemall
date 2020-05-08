@@ -1,5 +1,10 @@
 package org.linlinjava.litemall.wx.service;
 
+import java.util.HashMap;
+import java.util.Map;
+ 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.stream.Collectors;
 import com.github.binarywang.wxpay.bean.notify.WxPayNotifyResponse;
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
 import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult;
@@ -56,6 +61,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -684,7 +690,7 @@ public class WxOrderService {
         logger.info("rsp:" + result.getQrUrl());
         Map<String, Object> obj = new HashMap<String, Object>();
         obj.put("QrUrl", result.getQrUrl());
-        return ResponseUtil.ok(result.getQrUrl());
+        return ResponseUtil.ok(obj);
     }
 
     /**
@@ -698,67 +704,45 @@ public class WxOrderService {
      */
     @Transactional
     public Object payNotify(HttpServletRequest request, HttpServletResponse response) {
-        String result = null;
-        try {
-            result = IOUtils.toString(request.getInputStream(),
-            request.getCharacterEncoding());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseUtil.fail();
-        }
+        logger.info(request.getMethod());
+        logger.info(request.getRequestURI());
 
-        // WxPayOrderNotifyResult result = null;
-        // try {
-        // result = wxPayService.parseOrderNotifyResult(xmlResult);
-
-        // if (!WxPayConstants.ResultCode.SUCCESS.equals(result.getResultCode())) {
-        // logger.error(xmlResult);
-        // throw new WxPayException("微信通知支付失败！");
-        // }
-        // if (!WxPayConstants.ResultCode.SUCCESS.equals(result.getReturnCode())) {
-        // logger.error(xmlResult);
-        // throw new WxPayException("微信通知支付失败！");
-        // }
-        // } catch (WxPayException e) {
-        // e.printStackTrace();
-        // return WxPayNotifyResponse.fail(e.getMessage());
-        // }
-
-        // logger.info("处理腾讯支付平台的订单支付");
-        // logger.info(result);
-
-        logger.info(result);
-        NotifyReq.Builder reqBuilder = NotifyReq.newBuilder();
-        reqBuilder.setPayType(PayType.ExpressPay_WECHATPAY_JSAPI);
-        reqBuilder.setNotifyBody(result);
-        NotifyRsp rsp;
-        rsp = paymentBlockingStub.notify(reqBuilder.build());
-
-        String orderSn = rsp.getMerchantOrderNo();
-        String payId = rsp.getOrderID();
-
+        String orderSn;
+        String payId;
         // // 分转化成元
-        int totalFee = rsp.getAmount();
+        int totalFee;
+
+        Map<String, String[]> paraMap = request.getParameterMap();
+        orderSn = paraMap.get("merchantOrderNo")[0];
+        payId = paraMap.get("orderId")[0];
+        totalFee = Integer.parseInt(paraMap.get("amount")[0]);
+
         LitemallOrder order = orderService.findBySn(orderSn);
         if (order == null) {
-        return WxPayNotifyResponse.fail("订单不存在 sn=" + orderSn);
+            logger.info("订单不存在 sn=" + orderSn);
+            return WxPayNotifyResponse.fail("订单不存在 sn=" + orderSn);
         }
 
         // 检查这个订单是否已经处理过
         if (OrderUtil.hasPayed(order)) {
-        return WxPayNotifyResponse.success("订单已经处理成功!");
+            logger.info("订单不存在 sn=" + orderSn);
+            return WxPayNotifyResponse.success("订单已经处理成功!");
         }
 
         // 检查支付订单金额
-        if (order.getActualPrice().intValue() != totalFee) {
-        return WxPayNotifyResponse.fail(order.getOrderSn() + " : 支付金额不符合 totalFee=" +
-        totalFee);
+        BigDecimal actualPrice = order.getActualPrice();
+        Integer fee = actualPrice.multiply(new BigDecimal(100)).intValue();
+        if (fee != totalFee) {
+            logger.info(order.getOrderSn() + " : 支付金额不符合 totalFee=" +totalFee);
+            logger.info(fee);
+        return WxPayNotifyResponse.fail(order.getOrderSn() + " : 支付金额不符合 totalFee=" +totalFee);
         }
 
         order.setPayId(payId);
         order.setPayTime(LocalDateTime.now());
         order.setOrderStatus(OrderUtil.STATUS_PAY);
         if (orderService.updateWithOptimisticLocker(order) == 0) {
+            logger.info("订单不存在 sn=" + orderSn);
         return WxPayNotifyResponse.fail("更新数据已失效");
         }
 
@@ -778,6 +762,7 @@ public class WxOrderService {
         }
         groupon.setStatus(GrouponConstant.STATUS_ON);
         if (grouponService.updateById(groupon) == 0) {
+            logger.info("更新数据已失效");
         return WxPayNotifyResponse.fail("更新数据已失效");
         }
 
@@ -815,7 +800,12 @@ public class WxOrderService {
         // 取消订单超时未支付任务
         taskService.removeTask(new OrderUnpaidTask(order.getId()));
 
-        return WxPayNotifyResponse.success("处理成功!");
+
+        logger.info("处理成功!");
+        Map<String, Object> obj = new HashMap<String, Object>();
+        obj.put("resultCode", "0");
+        obj.put("resultMsg", "SUCCESS");
+        return ResponseUtil.ok(obj);
     }
 
     /**
