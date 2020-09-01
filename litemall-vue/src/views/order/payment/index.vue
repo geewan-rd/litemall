@@ -124,16 +124,16 @@ export default {
             orderH5pay({ orderId: this.orderId })
               .then(res => {
                 let data = res.data.data;
-                window.location.replace(
-                  data.mwebUrl +
-                  '&redirect_url=' +
-                  encodeURIComponent(
-                    window.location.origin +
-                    '/#/?orderId=' +
-                    this.orderId +
-                    '&tip=yes'
-                  )
-                );
+                // window.location.replace(
+                //   data.mwebUrl +
+                //   '&redirect_url=' +
+                //   encodeURIComponent(
+                //     window.location.origin +
+                //     '/#/?orderId=' +
+                //     this.orderId +
+                //     '&tip=yes'
+                //   )
+                // );
               })
               .catch(err => {
                 Dialog.alert({ message: err.data.errmsg });
