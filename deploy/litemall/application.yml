@@ -5,10 +5,10 @@ spring:
     encoding: UTF-8
   datasource:
     druid:
-      url: jdbc:mysql://localhost:3306/litemall?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&verifyServerCertificate=false&useSSL=false
+      url: jdbc:mysql://rm-j6c8o2wmj3i1x28i38o.mysql.rds.aliyuncs.com:3306/litemall?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&verifyServerCertificate=false&useSSL=false
       driver-class-name: com.mysql.jdbc.Driver
-      username: fregie
-      password: fregie789632145
+      username: litemall
+      password: 789632145
       initial-size: 10
       max-active: 50
       min-idle: 10

@@ -17,12 +17,12 @@
       <div class="pay_way_title">选择支付方式</div>
       <van-radio-group v-model="payWay">
         <van-cell-group>
-          <van-cell>
+          <!-- <van-cell>
             <template slot="title">
               <img src="../../../assets/images/ali_pay.png" alt="支付宝" width="82" height="29">
             </template>
             <van-radio name="ali"/>
-          </van-cell>
+          </van-cell> -->
           <van-cell>
             <template slot="title">
               <img src="../../../assets/images/wx_pay.png" alt="微信支付" width="113" height="23">
@@ -34,6 +34,10 @@
     </div>
 
     <van-button class="pay_submit" @click="pay" type="primary" bottomAction>去支付</van-button>
+
+    <van-dialog v-model="showQr" title="支付二维码" shwo-cancel-button class="qr-dialog">
+      <qrcode :value="qrValue" :options="{ width: 200 }"></qrcode>
+    </van-dialog>
   </div>
 </template>
 
@@ -53,7 +57,9 @@ export default {
         orderInfo: {},
         orderGoods: []
       },
-      orderId: 0
+      orderId: 0,
+      showQr: false,
+      qrValue: '',
     };
   },
   created() {
@@ -70,9 +76,9 @@ export default {
     },
     pay() {
       
-      Dialog.alert({
-        message: '你选择了' + (this.payWay === 'wx' ? '微信支付' : '支付宝支付')
-      }).then(() => {
+      // Dialog.alert({
+      //   // message: '你选择了' + (this.payWay === 'wx' ? '微信支付' : '支付宝支付')
+      // }).then(() => {
         if (this.payWay === 'wx') {
           let ua = navigator.userAgent.toLowerCase();
           let isWeixin = ua.indexOf('micromessenger') != -1;
@@ -124,6 +130,9 @@ export default {
             orderH5pay({ orderId: this.orderId })
               .then(res => {
                 let data = res.data.data;
+                this.qrValue = data.QrUrl
+                console.log(data.QrUrl)
+                this.showQr = true
                 // window.location.replace(
                 //   data.mwebUrl +
                 //   '&redirect_url=' +
@@ -142,7 +151,7 @@ export default {
         } else {
           //todo : alipay
         }
-      });
+      // });
     },
     onBridgeReady() {
       let that = this;
@@ -210,5 +219,9 @@ export default {
 .pay_way_title {
   padding: 15px;
   background-color: #fff;
+}
+
+.qr-dialog {
+  text-align: center;
 }
 </style>

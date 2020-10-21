@@ -675,7 +675,7 @@ public class WxOrderService {
             reqBuilder.setCurrencyType(CurrencyType.HKD);
             reqBuilder.setAmount(fee);
             reqBuilder.setMerchantOrderNo(order.getOrderSn());
-            reqBuilder.setGoodsName("穿梭会员");
+            reqBuilder.setGoodsName("商品");
             reqBuilder.setClientIP(request.getRemoteAddr().toString());
             reqBuilder.setReturnUrl("https://www.baidu.com");
             reqBuilder.setNotifyUrl("http://47.108.67.230:8080/wx/order/pay-notify");
@@ -803,7 +803,7 @@ public class WxOrderService {
 
         logger.info("处理成功!");
         Map<String, Object> obj = new HashMap<String, Object>();
-        obj.put("resultCode", "0");
+        obj.put("resultCode", "SUCCESS");
         obj.put("resultMsg", "SUCCESS");
         return ResponseUtil.ok(obj);
     }
