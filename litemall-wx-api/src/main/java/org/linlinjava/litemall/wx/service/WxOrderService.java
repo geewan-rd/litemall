@@ -87,7 +87,7 @@ public class WxOrderService {
 
     public WxOrderService() {
         logger.info("grpc连接");
-        this.paymentChannel = ManagedChannelBuilder.forTarget("127.0.0.1:1643").usePlaintext().build();
+        this.paymentChannel = ManagedChannelBuilder.forTarget("172.31.205.63:1643").usePlaintext().build();
         
         this.paymentBlockingStub = PaymentGrpc.newBlockingStub(this.paymentChannel);
         this.paymentAsyncStub = PaymentGrpc.newStub(this.paymentChannel);
@@ -678,7 +678,7 @@ public class WxOrderService {
             reqBuilder.setGoodsName("商品");
             reqBuilder.setClientIP(request.getRemoteAddr().toString());
             reqBuilder.setReturnUrl("https://www.baidu.com");
-            reqBuilder.setNotifyUrl("http://47.108.67.230:8080/wx/order/pay-notify");
+            reqBuilder.setNotifyUrl("http://47.240.125.208:8080/wx/order/pay-notify");
             reqBuilder.setGoodsNote("goods");
             reqBuilder.setNote("goods");
 
